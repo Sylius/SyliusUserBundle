@@ -11,15 +11,15 @@
 
 namespace Sylius\Bundle\UserBundle\Form\Type;
 
-use Sylius\Bundle\ResourceBundle\Form\Type\AbstractResourceType;
-use Sylius\Bundle\UserBundle\Form\EventListener\CanonicalizerFormListener;
 use Sylius\Component\User\Canonicalizer\CanonicalizerInterface;
 use Symfony\Component\Form\FormBuilderInterface;
+use Sylius\Bundle\ResourceBundle\Form\Type\AbstractResourceType;
+use Sylius\Bundle\UserBundle\Form\EventListener\CanonicalizerFormListener;
 
 /**
  * @author Łukasz Chruściel <lukasz.chrusciel@lakion.com>
  */
-class UserType extends AbstractResourceType
+class UserRegistrationType extends AbstractResourceType
 {
     /**
      * DataFetcher registry.
@@ -55,24 +55,12 @@ class UserType extends AbstractResourceType
             ->add('email', 'text', array(
                 'label' => 'sylius.form.user.email',
             ))
-            ->add('plainPassword', 'password', array(
-                'label' => 'sylius.form.user.password.label',
+            ->add('plainPassword', 'repeated', array(
+                'type'            => 'password',
+                'first_options'   => array('label' => 'sylius.form.user.password.label'),
+                'second_options'  => array('label' => 'sylius.form.user.password.confirmation'),
+                'invalid_message' => 'sylius.user.plainPassword.mismatch',
             ))
-            ->add('enabled', 'checkbox', array(
-                'label' => 'sylius.form.user.enabled',
-            ))
-            ->add('groups', 'sylius_group_choice', array(
-                'label'    => 'sylius.form.user.groups',
-                'multiple' => true,
-                'required' => false,
-            ))
-            ->add('authorizationRoles', 'sylius_role_choice', array(
-                'label'    => 'sylius.form.user.roles',
-                'multiple' => true,
-                'expanded' => true,
-                'required' => false
-            ))
-            ->remove('username')
         ;
     }
 
@@ -81,6 +69,6 @@ class UserType extends AbstractResourceType
      */
     public function getName()
     {
-        return 'sylius_user';
+        return 'sylius_user_registration';
     }
 }
