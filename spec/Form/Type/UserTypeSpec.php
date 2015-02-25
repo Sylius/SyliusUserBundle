@@ -19,7 +19,7 @@ use Symfony\Component\Form\FormBuilderInterface;
 /**
  * @author Łukasz Chruściel <lukasz.chrusciel@lakion.com>
  */
-class UserRegistrationTypeSpec extends ObjectBehavior
+class UserTypeSpec extends ObjectBehavior
 {
     function let(CanonicalizerInterface $canonicalizer)
     {
@@ -28,7 +28,7 @@ class UserRegistrationTypeSpec extends ObjectBehavior
 
     function it_is_initializable()
     {
-        $this->shouldHaveType('Sylius\Bundle\UserBundle\Form\Type\UserRegistrationType');
+        $this->shouldHaveType('Sylius\Bundle\UserBundle\Form\Type\UserType');
     }
 
     function it_extends_abstract_resource_type()
@@ -38,7 +38,7 @@ class UserRegistrationTypeSpec extends ObjectBehavior
 
     function it_has_name()
     {
-        $this->getName()->shouldReturn('sylius_user_registration');
+        $this->getName()->shouldReturn('sylius_user');
     }
 
     function it_builds_form(FormBuilderInterface $builder)
@@ -47,7 +47,11 @@ class UserRegistrationTypeSpec extends ObjectBehavior
         $builder->add('firstName', 'text', Argument::any())->shouldBeCalled()->willReturn($builder);
         $builder->add('lastName', 'text', Argument::any())->shouldBeCalled()->willReturn($builder);
         $builder->add('email', 'text', Argument::any())->shouldBeCalled()->willReturn($builder);
-        $builder->add('plainPassword', 'repeated', Argument::any())->shouldBeCalled()->willReturn($builder);
+        $builder->add('plainPassword', 'password', Argument::any())->shouldBeCalled()->willReturn($builder);
+        $builder->add('enabled', 'checkbox', Argument::any())->shouldBeCalled()->willReturn($builder);
+        $builder->add('groups', 'sylius_group_choice', Argument::any())->shouldBeCalled()->willReturn($builder);
+        $builder->add('authorizationRoles', 'sylius_role_choice', Argument::any())->shouldBeCalled()->willReturn($builder);
+        $builder->remove('username')->shouldBeCalled()->willReturn($builder);
 
         $this->buildForm($builder, array());
     }

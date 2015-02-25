@@ -18,27 +18,26 @@ use Symfony\Component\Form\FormBuilderInterface;
 /**
  * @author Łukasz Chruściel <lukasz.chrusciel@lakion.com>
  */
-class UserLoginTypeSpec extends ObjectBehavior
+class UserResetPasswordTypeSpec extends ObjectBehavior
 {
-    function it_is_initializable()
-    {
-        $this->shouldHaveType('Sylius\Bundle\UserBundle\Form\Type\UserLoginType');
-    }
-
     function it_extends_abstract_type()
     {
         $this->shouldHaveType('Symfony\Component\Form\AbstractType');
     }
 
+    function it_is_initializable()
+    {
+        $this->shouldHaveType('Sylius\Bundle\UserBundle\Form\Type\UserResetPasswordType');
+    }
+
     function it_has_name()
     {
-        $this->getName()->shouldReturn('sylius_user_security_login');
+        $this->getName()->shouldReturn('sylius_user_reset_password');
     }
 
     function it_builds_form(FormBuilderInterface $builder)
     {
-        $builder->add('_username', 'text', Argument::any())->shouldBeCalled()->willReturn($builder);
-        $builder->add('_password', 'password', Argument::any())->shouldBeCalled()->willReturn($builder);
+        $builder->add('newPassword', 'repeated', Argument::any())->shouldBeCalled()->willReturn($builder);
 
         $this->buildForm($builder, array());
     }

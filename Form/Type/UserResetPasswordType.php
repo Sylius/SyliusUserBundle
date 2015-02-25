@@ -18,7 +18,7 @@ use Symfony\Component\OptionsResolver\OptionsResolverInterface;
 /**
  * @author Łukasz Chruściel <lukasz.chrusciel@lakion.com>
  */
-class UserChangePasswordType extends AbstractType
+class UserResetPasswordType extends AbstractType
 {
     /**
      * {@inheritdoc}
@@ -26,9 +26,6 @@ class UserChangePasswordType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder
-            ->add('currentPassword', 'password', array(
-                'label' => 'sylius.form.user.password.current',
-            ))
             ->add('newPassword', 'repeated', array(
                 'type'            => 'password',
                 'first_options'   => array('label' => 'sylius.form.user.password.label'),
@@ -54,6 +51,6 @@ class UserChangePasswordType extends AbstractType
      */
     public function getName()
     {
-        return 'sylius_user_change_password';
+        return 'sylius_user_reset_password';
     }
 }
