@@ -11,6 +11,7 @@
 
 namespace Sylius\Bundle\UserBundle\Form\EventSubscriber;
 
+use Sylius\Component\User\Model\CustomerAwareInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
@@ -49,8 +50,11 @@ class AddCustomerGuestTypeFormSubscriber implements EventSubscriberInterface
     public function preSetData(FormEvent $event)
     {
         $form = $event->getForm();
+        /** @var CustomerAwareInterface $subject */
+        $resource = $event->getData();
         $customer = $form->getConfig()->getOption($this->field);
-        if (null === $customer) {
+
+        if (null === $customer && null === $resource->getCustomer()) {
             $form->add($this->field, 'sylius_customer_guest');
         }
     }
