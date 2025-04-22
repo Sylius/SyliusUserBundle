@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Sylius\Bundle\UserBundle\Tests\DependencyInjection;
 
+use PHPUnit\Framework\Attributes\Test;
 use Matthias\SymfonyDependencyInjectionTest\PhpUnit\AbstractExtensionTestCase;
 use PHPUnit\Framework\Assert;
 use Sylius\Bundle\UserBundle\DependencyInjection\SyliusUserExtension;
@@ -22,7 +23,7 @@ use Sylius\Resource\Factory\Factory;
 
 final class SyliusUserExtensionTest extends AbstractExtensionTestCase
 {
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_creates_default_resource_factory_by_default(): void
     {
         $this->load([
@@ -38,7 +39,7 @@ final class SyliusUserExtensionTest extends AbstractExtensionTestCase
         Assert::assertSame(Factory::class, $factoryDefinition->getClass());
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_creates_last_login_subscriber_for_each_user_type(): void
     {
         $this->load([
@@ -66,7 +67,7 @@ final class SyliusUserExtensionTest extends AbstractExtensionTestCase
         Assert::assertNull($customLastLoginSubscriber->getArgument(2));
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_creates_default_resetting_token_parameters_for_each_user_type(): void
     {
         $this->load([
@@ -84,7 +85,7 @@ final class SyliusUserExtensionTest extends AbstractExtensionTestCase
         Assert::assertSame('P1D', $this->container->getParameter('sylius.shop_user.token.password_reset.ttl'));
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_creates_custom_resetting_token_parameters_for_each_user_type(): void
     {
         $this->load([
