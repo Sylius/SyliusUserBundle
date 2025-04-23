@@ -13,9 +13,9 @@ declare(strict_types=1);
 
 namespace Sylius\Bundle\UserBundle\Tests\DependencyInjection;
 
-use PHPUnit\Framework\Attributes\Test;
 use Matthias\SymfonyDependencyInjectionTest\PhpUnit\AbstractExtensionTestCase;
 use PHPUnit\Framework\Assert;
+use PHPUnit\Framework\Attributes\Test;
 use Sylius\Bundle\UserBundle\DependencyInjection\SyliusUserExtension;
 use Sylius\Bundle\UserBundle\EventListener\UserLastLoginSubscriber;
 use Sylius\Component\User\Model\User;
