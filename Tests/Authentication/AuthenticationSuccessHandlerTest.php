@@ -24,32 +24,34 @@ use Symfony\Component\Security\Http\HttpUtils;
 
 final class AuthenticationSuccessHandlerTest extends TestCase
 {
-    /** @var HttpUtils|MockObject */
-    private MockObject $httpUtilsMock;
+    private HttpUtils&MockObject $httpUtils;
 
     private AuthenticationSuccessHandler $authenticationSuccessHandler;
 
     protected function setUp(): void
     {
-        $this->httpUtilsMock = $this->createMock(HttpUtils::class);
-        $this->authenticationSuccessHandler = new AuthenticationSuccessHandler($this->httpUtilsMock);
+        $this->httpUtils = $this->createMock(HttpUtils::class);
+
+        $this->authenticationSuccessHandler = new AuthenticationSuccessHandler($this->httpUtils);
     }
 
-    public function testAAuthenticationSuccessHandler(): void
+    public function testAuthenticationSuccessHandler(): void
     {
         $this->assertInstanceOf(AuthenticationSuccessHandlerInterface::class, $this->authenticationSuccessHandler);
     }
 
     public function testReturnsJsonResponseIfRequestIsXmlBased(): void
     {
-        /** @var Request&MockObject $requestMock */
-        $requestMock = $this->createMock(Request::class);
-        /** @var TokenInterface&MockObject $tokenMock */
-        $tokenMock = $this->createMock(TokenInterface::class);
-        /** @var UserInterface&MockObject $userMock */
-        $userMock = $this->createMock(UserInterface::class);
-        $requestMock->expects($this->once())->method('isXmlHttpRequest')->willReturn(true);
-        $tokenMock->expects($this->once())->method('getUser')->willReturn($userMock);
-        $this->authenticationSuccessHandler->onAuthenticationSuccess($requestMock, $tokenMock);
+        /** @var Request&MockObject $request */
+        $request = $this->createMock(Request::class);
+        /** @var TokenInterface&MockObject $token */
+        $token = $this->createMock(TokenInterface::class);
+        /** @var UserInterface&MockObject $user */
+        $user = $this->createMock(UserInterface::class);
+
+        $request->expects($this->once())->method('isXmlHttpRequest')->willReturn(true);
+        $token->expects($this->once())->method('getUser')->willReturn($user);
+
+        $this->authenticationSuccessHandler->onAuthenticationSuccess($request, $token);
     }
 }

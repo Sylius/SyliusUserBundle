@@ -29,15 +29,19 @@ use Symfony\Component\Security\Http\SecurityEvents;
 
 final class UserLastLoginSubscriberTest extends TestCase
 {
-    /** @var ObjectManager|MockObject */
-    private MockObject $userManagerMock;
+    private ObjectManager&MockObject $userManager;
 
     private UserLastLoginSubscriber $userLastLoginSubscriber;
 
     protected function setUp(): void
     {
-        $this->userManagerMock = $this->createMock(ObjectManager::class);
-        $this->userLastLoginSubscriber = new UserLastLoginSubscriber($this->userManagerMock, UserInterface::class, null);
+        $this->userManager = $this->createMock(ObjectManager::class);
+
+        $this->userLastLoginSubscriber = new UserLastLoginSubscriber(
+            $this->userManager,
+            UserInterface::class,
+            null,
+        );
     }
 
     public function testSubscriber(): void
@@ -47,169 +51,198 @@ final class UserLastLoginSubscriberTest extends TestCase
 
     public function testItsSubscribedToEvents(): void
     {
-        $this->assertSame([
-            SecurityEvents::INTERACTIVE_LOGIN => 'onSecurityInteractiveLogin',
-            UserEvents::SECURITY_IMPLICIT_LOGIN => 'onImplicitLogin',
-        ], $this->userLastLoginSubscriber::getSubscribedEvents());
+        $this->assertSame(
+            [
+                SecurityEvents::INTERACTIVE_LOGIN => 'onSecurityInteractiveLogin',
+                UserEvents::SECURITY_IMPLICIT_LOGIN => 'onImplicitLogin',
+            ],
+            $this->userLastLoginSubscriber::getSubscribedEvents(),
+        );
     }
 
     public function testUpdatesUserLastLoginOnSecurityInteractiveLogin(): void
     {
-        /** @var Request&MockObject $requestMock */
-        $requestMock = $this->createMock(Request::class);
-        /** @var TokenInterface&MockObject $tokenMock */
-        $tokenMock = $this->createMock(TokenInterface::class);
-        /** @var \Sylius\Component\User\Model\UserInterface&MockObject $userMock */
-        $userMock = $this->createMock(UserInterface::class);
-        $tokenMock->expects($this->once())->method('getUser')->willReturn($userMock);
-        $userMock->expects($this->once())->method('setLastLogin')->with($this->isInstanceOf(\DateTimeInterface::class));
-        $this->userManagerMock->expects($this->once())->method('persist')->with($userMock);
-        $this->userManagerMock->expects($this->once())->method('flush');
-        $this->userLastLoginSubscriber->onSecurityInteractiveLogin(new InteractiveLoginEvent($requestMock, $tokenMock));
+        /** @var Request&MockObject $request */
+        $request = $this->createMock(Request::class);
+        /** @var TokenInterface&MockObject $token */
+        $token = $this->createMock(TokenInterface::class);
+        /** @var UserInterface&MockObject $user */
+        $user = $this->createMock(UserInterface::class);
+
+        $token->expects($this->once())->method('getUser')->willReturn($user);
+        $user->expects($this->once())->method('setLastLogin')->with($this->isInstanceOf(\DateTimeInterface::class));
+        $this->userManager->expects($this->once())->method('persist')->with($user);
+        $this->userManager->expects($this->once())->method('flush');
+
+        $this->userLastLoginSubscriber->onSecurityInteractiveLogin(new InteractiveLoginEvent($request, $token));
     }
 
     public function testUpdatesUserLastLoginOnImplicitLogin(): void
     {
-        /** @var UserEvent&MockObject $eventMock */
-        $eventMock = $this->createMock(UserEvent::class);
-        /** @var \Sylius\Component\User\Model\UserInterface&MockObject $userMock */
-        $userMock = $this->createMock(UserInterface::class);
-        $eventMock->expects($this->once())->method('getUser')->willReturn($userMock);
-        $userMock->expects($this->once())->method('setLastLogin')->with($this->isInstanceOf(\DateTimeInterface::class));
-        $this->userManagerMock->expects($this->once())->method('persist')->with($userMock);
-        $this->userManagerMock->expects($this->once())->method('flush');
-        $this->userLastLoginSubscriber->onImplicitLogin($eventMock);
+        /** @var UserEvent&MockObject $event */
+        $event = $this->createMock(UserEvent::class);
+        /** @var UserInterface&MockObject $user */
+        $user = $this->createMock(UserInterface::class);
+
+        $event->expects($this->once())->method('getUser')->willReturn($user);
+        $user->expects($this->once())->method('setLastLogin')->with($this->isInstanceOf(\DateTimeInterface::class));
+        $this->userManager->expects($this->once())->method('persist')->with($user);
+        $this->userManager->expects($this->once())->method('flush');
+
+        $this->userLastLoginSubscriber->onImplicitLogin($event);
     }
 
     public function testUpdatesOnlySyliusUserSpecifiedInConstructor(): void
     {
-        /** @var UserEvent&MockObject $eventMock */
-        $eventMock = $this->createMock(UserEvent::class);
-        /** @var \Sylius\Component\User\Model\UserInterface&MockObject $userMock */
-        $userMock = $this->createMock(UserInterface::class);
+        /** @var UserEvent&MockObject $event */
+        $event = $this->createMock(UserEvent::class);
+        /** @var UserInterface&MockObject $user */
+        $user = $this->createMock(UserInterface::class);
 
-        $this->userLastLoginSubscriber = new UserLastLoginSubscriber($this->userManagerMock, 'FakeBundle\User\Model\User', null);
-        $eventMock->expects($this->once())->method('getUser')->willReturn($userMock);
-        $userMock->expects($this->never())->method('setLastLogin');
-        $this->userManagerMock->expects($this->never())->method('persist');
-        $this->userManagerMock->expects($this->never())->method('flush');
+        $this->userLastLoginSubscriber = new UserLastLoginSubscriber($this->userManager, 'FakeBundle\User\Model\User', null);
 
-        $this->userLastLoginSubscriber->onImplicitLogin($eventMock);
+        $event->expects($this->once())->method('getUser')->willReturn($user);
+        $user->expects($this->never())->method('setLastLogin');
+        $this->userManager->expects($this->never())->method('persist');
+        $this->userManager->expects($this->never())->method('flush');
+
+        $this->userLastLoginSubscriber->onImplicitLogin($event);
     }
 
     public function testThrowsExceptionIfSubscriberIsUsedForClassOtherThanSyliusUserInterface(): void
     {
-        /** @var Request&MockObject $requestMock */
-        $requestMock = $this->createMock(Request::class);
-        /** @var TokenInterface&MockObject $tokenMock */
-        $tokenMock = $this->createMock(TokenInterface::class);
-        /** @var \Symfony\Component\Security\Core\User\UserInterface&MockObject $userMock */
-        $userMock = $this->createMock(\Symfony\Component\Security\Core\User\UserInterface::class);
-        $this->userLastLoginSubscriber = new UserLastLoginSubscriber($this->userManagerMock, SymfonyUserInterface::class, null);
-        $tokenMock->expects($this->once())->method('getUser')->willReturn($userMock);
-        $this->userManagerMock->expects($this->never())->method('persist');
-        $this->userManagerMock->expects($this->never())->method('flush');
+        /** @var Request&MockObject $request */
+        $request = $this->createMock(Request::class);
+        /** @var TokenInterface&MockObject $token */
+        $token = $this->createMock(TokenInterface::class);
+        /** @var SymfonyUserInterface&MockObject $user */
+        $user = $this->createMock(SymfonyUserInterface::class);
+
+        $this->userLastLoginSubscriber = new UserLastLoginSubscriber($this->userManager, SymfonyUserInterface::class, null);
+
+        $token->expects($this->once())->method('getUser')->willReturn($user);
+        $this->userManager->expects($this->never())->method('persist');
+        $this->userManager->expects($this->never())->method('flush');
+
         $this->expectException(\UnexpectedValueException::class);
-        $this->userLastLoginSubscriber->onSecurityInteractiveLogin(new InteractiveLoginEvent($requestMock, $tokenMock));
+
+        $this->userLastLoginSubscriber->onSecurityInteractiveLogin(new InteractiveLoginEvent($request, $token));
     }
 
     public function testSetsLastLoginWhenThereWasNoneAndIntervalIsPresentOnInteractiveLogin(): void
     {
-        /** @var Request&MockObject $requestMock */
-        $requestMock = $this->createMock(Request::class);
-        /** @var TokenInterface&MockObject $tokenMock */
-        $tokenMock = $this->createMock(TokenInterface::class);
-        /** @var \Sylius\Component\User\Model\UserInterface&MockObject $userMock */
-        $userMock = $this->createMock(UserInterface::class);
-        $this->userLastLoginSubscriber = new UserLastLoginSubscriber($this->userManagerMock, UserInterface::class, 'P1D');
-        $tokenMock->expects($this->once())->method('getUser')->willReturn($userMock);
-        $userMock->expects($this->once())->method('getLastLogin')->willReturn(null);
-        $userMock->expects($this->once())->method('setLastLogin')->with($this->isInstanceOf(\DateTimeInterface::class));
-        $this->userManagerMock->expects($this->once())->method('persist')->with($userMock);
-        $this->userManagerMock->expects($this->once())->method('flush');
-        $this->userLastLoginSubscriber->onSecurityInteractiveLogin(new InteractiveLoginEvent($requestMock, $tokenMock));
+        /** @var Request&MockObject $request */
+        $request = $this->createMock(Request::class);
+        /** @var TokenInterface&MockObject $token */
+        $token = $this->createMock(TokenInterface::class);
+        /** @var UserInterface&MockObject $user */
+        $user = $this->createMock(UserInterface::class);
+
+        $this->userLastLoginSubscriber = new UserLastLoginSubscriber($this->userManager, UserInterface::class, 'P1D');
+
+        $token->expects($this->once())->method('getUser')->willReturn($user);
+        $user->expects($this->once())->method('getLastLogin')->willReturn(null);
+        $user->expects($this->once())->method('setLastLogin')->with($this->isInstanceOf(\DateTimeInterface::class));
+        $this->userManager->expects($this->once())->method('persist')->with($user);
+        $this->userManager->expects($this->once())->method('flush');
+
+        $this->userLastLoginSubscriber->onSecurityInteractiveLogin(new InteractiveLoginEvent($request, $token));
     }
 
     public function testSetsLastLoginWhenThereWasNoneAndIntervalIsPresentOnImplicitLogin(): void
     {
-        /** @var UserEvent&MockObject $eventMock */
-        $eventMock = $this->createMock(UserEvent::class);
-        /** @var \Sylius\Component\User\Model\UserInterface&MockObject $userMock */
-        $userMock = $this->createMock(UserInterface::class);
-        $this->userLastLoginSubscriber = new UserLastLoginSubscriber($this->userManagerMock, UserInterface::class, 'P1D');
-        $userMock->expects($this->once())->method('getLastLogin')->willReturn(null);
-        $eventMock->expects($this->once())->method('getUser')->willReturn($userMock);
-        $userMock->expects($this->once())->method('setLastLogin')->with($this->isInstanceOf(\DateTimeInterface::class));
-        $this->userManagerMock->expects($this->once())->method('persist')->with($userMock);
-        $this->userManagerMock->expects($this->once())->method('flush');
-        $this->userLastLoginSubscriber->onImplicitLogin($eventMock);
+        /** @var UserEvent&MockObject $event */
+        $event = $this->createMock(UserEvent::class);
+        /** @var UserInterface&MockObject $user */
+        $user = $this->createMock(UserInterface::class);
+
+        $this->userLastLoginSubscriber = new UserLastLoginSubscriber($this->userManager, UserInterface::class, 'P1D');
+
+        $user->expects($this->once())->method('getLastLogin')->willReturn(null);
+        $event->expects($this->once())->method('getUser')->willReturn($user);
+        $user->expects($this->once())->method('setLastLogin')->with($this->isInstanceOf(\DateTimeInterface::class));
+        $this->userManager->expects($this->once())->method('persist')->with($user);
+        $this->userManager->expects($this->once())->method('flush');
+
+        $this->userLastLoginSubscriber->onImplicitLogin($event);
     }
 
     public function testDoesNothingWhenTrackingIntervalIsSetAndUserWasUpdatedWithinItOnInteractiveLogin(): void
     {
-        /** @var Request&MockObject $requestMock */
-        $requestMock = $this->createMock(Request::class);
-        /** @var TokenInterface&MockObject $tokenMock */
-        $tokenMock = $this->createMock(TokenInterface::class);
-        /** @var \Sylius\Component\User\Model\UserInterface&MockObject $userMock */
-        $userMock = $this->createMock(UserInterface::class);
-        $this->userLastLoginSubscriber = new UserLastLoginSubscriber($this->userManagerMock, UserInterface::class, 'P1D');
-        $tokenMock->expects($this->once())->method('getUser')->willReturn($userMock);
+        /** @var Request&MockObject $request */
+        $request = $this->createMock(Request::class);
+        /** @var TokenInterface&MockObject $token */
+        $token = $this->createMock(TokenInterface::class);
+        /** @var UserInterface&MockObject $user */
+        $user = $this->createMock(UserInterface::class);
+
+        $this->userLastLoginSubscriber = new UserLastLoginSubscriber($this->userManager, UserInterface::class, 'P1D');
+
+        $token->expects($this->once())->method('getUser')->willReturn($user);
         $lastLogin = (new \DateTime())->modify('-6 hours');
-        $userMock->expects($this->once())->method('getLastLogin')->willReturn($lastLogin);
-        $userMock->expects($this->never())->method('setLastLogin');
-        $this->userManagerMock->expects($this->never())->method('persist')->with($userMock);
-        $this->userManagerMock->expects($this->never())->method('flush');
-        $this->userLastLoginSubscriber->onSecurityInteractiveLogin(new InteractiveLoginEvent($requestMock, $tokenMock));
+        $user->expects($this->once())->method('getLastLogin')->willReturn($lastLogin);
+        $user->expects($this->never())->method('setLastLogin');
+        $this->userManager->expects($this->never())->method('persist')->with($user);
+        $this->userManager->expects($this->never())->method('flush');
+        $this->userLastLoginSubscriber->onSecurityInteractiveLogin(new InteractiveLoginEvent($request, $token));
     }
 
     public function testDoesNothingWhenTrackingIntervalIsSetAndUserWasUpdatedWithinItOnImplicitLogin(): void
     {
-        /** @var UserEvent&MockObject $eventMock */
-        $eventMock = $this->createMock(UserEvent::class);
-        /** @var \Sylius\Component\User\Model\UserInterface&MockObject $userMock */
-        $userMock = $this->createMock(UserInterface::class);
-        $this->userLastLoginSubscriber = new UserLastLoginSubscriber($this->userManagerMock, UserInterface::class, 'P1D');
+        /** @var UserEvent&MockObject $event */
+        $event = $this->createMock(UserEvent::class);
+        /** @var UserInterface&MockObject $user */
+        $user = $this->createMock(UserInterface::class);
+
+        $this->userLastLoginSubscriber = new UserLastLoginSubscriber($this->userManager, UserInterface::class, 'P1D');
+
         $lastLogin = (new \DateTime())->modify('-6 hours');
-        $userMock->expects($this->once())->method('getLastLogin')->willReturn($lastLogin);
-        $eventMock->expects($this->once())->method('getUser')->willReturn($userMock);
-        $userMock->expects($this->never())->method('setLastLogin');
-        $this->userManagerMock->expects($this->never())->method('persist')->with($userMock);
-        $this->userManagerMock->expects($this->never())->method('flush');
-        $this->userLastLoginSubscriber->onImplicitLogin($eventMock);
+        $user->expects($this->once())->method('getLastLogin')->willReturn($lastLogin);
+        $event->expects($this->once())->method('getUser')->willReturn($user);
+        $user->expects($this->never())->method('setLastLogin');
+        $this->userManager->expects($this->never())->method('persist')->with($user);
+        $this->userManager->expects($this->never())->method('flush');
+
+        $this->userLastLoginSubscriber->onImplicitLogin($event);
     }
 
     public function testUpdatesLastLoginWhenThePreviousIsOlderThanTheIntervalOnInteractiveLogin(): void
     {
-        /** @var Request&MockObject $requestMock */
-        $requestMock = $this->createMock(Request::class);
-        /** @var TokenInterface&MockObject $tokenMock */
-        $tokenMock = $this->createMock(TokenInterface::class);
-        /** @var \Sylius\Component\User\Model\UserInterface&MockObject $userMock */
-        $userMock = $this->createMock(UserInterface::class);
-        $this->userLastLoginSubscriber = new UserLastLoginSubscriber($this->userManagerMock, UserInterface::class, 'P1D');
-        $tokenMock->expects($this->once())->method('getUser')->willReturn($userMock);
+        /** @var Request&MockObject $request */
+        $request = $this->createMock(Request::class);
+        /** @var TokenInterface&MockObject $token */
+        $token = $this->createMock(TokenInterface::class);
+        /** @var UserInterface&MockObject $user */
+        $user = $this->createMock(UserInterface::class);
+
+        $this->userLastLoginSubscriber = new UserLastLoginSubscriber($this->userManager, UserInterface::class, 'P1D');
+
+        $token->expects($this->once())->method('getUser')->willReturn($user);
         $lastLogin = (new \DateTime())->modify('-3 days');
-        $userMock->expects($this->once())->method('getLastLogin')->willReturn($lastLogin);
-        $userMock->expects($this->once())->method('setLastLogin')->with($this->isInstanceOf(\DateTimeInterface::class));
-        $this->userManagerMock->expects($this->once())->method('persist')->with($userMock);
-        $this->userManagerMock->expects($this->once())->method('flush');
-        $this->userLastLoginSubscriber->onSecurityInteractiveLogin(new InteractiveLoginEvent($requestMock, $tokenMock));
+        $user->expects($this->once())->method('getLastLogin')->willReturn($lastLogin);
+        $user->expects($this->once())->method('setLastLogin')->with($this->isInstanceOf(\DateTimeInterface::class));
+        $this->userManager->expects($this->once())->method('persist')->with($user);
+        $this->userManager->expects($this->once())->method('flush');
+
+        $this->userLastLoginSubscriber->onSecurityInteractiveLogin(new InteractiveLoginEvent($request, $token));
     }
 
     public function testUpdatesLastLoginWhenThePreviousIsOlderThanTheIntervalOnImplicitLogin(): void
     {
-        /** @var UserEvent&MockObject $eventMock */
-        $eventMock = $this->createMock(UserEvent::class);
-        /** @var \Sylius\Component\User\Model\UserInterface&MockObject $userMock */
-        $userMock = $this->createMock(UserInterface::class);
-        $this->userLastLoginSubscriber = new UserLastLoginSubscriber($this->userManagerMock, UserInterface::class, 'P1D');
+        /** @var UserEvent&MockObject $event */
+        $event = $this->createMock(UserEvent::class);
+        /** @var UserInterface&MockObject $user */
+        $user = $this->createMock(UserInterface::class);
+
+        $this->userLastLoginSubscriber = new UserLastLoginSubscriber($this->userManager, UserInterface::class, 'P1D');
+
         $lastLogin = (new \DateTime())->modify('-3 days');
-        $userMock->expects($this->once())->method('getLastLogin')->willReturn($lastLogin);
-        $eventMock->expects($this->once())->method('getUser')->willReturn($userMock);
-        $userMock->expects($this->once())->method('setLastLogin')->with($this->isInstanceOf(\DateTimeInterface::class));
-        $this->userManagerMock->expects($this->once())->method('persist')->with($userMock);
-        $this->userManagerMock->expects($this->once())->method('flush');
-        $this->userLastLoginSubscriber->onImplicitLogin($eventMock);
+        $user->expects($this->once())->method('getLastLogin')->willReturn($lastLogin);
+        $event->expects($this->once())->method('getUser')->willReturn($user);
+        $user->expects($this->once())->method('setLastLogin')->with($this->isInstanceOf(\DateTimeInterface::class));
+        $this->userManager->expects($this->once())->method('persist')->with($user);
+        $this->userManager->expects($this->once())->method('flush');
+
+        $this->userLastLoginSubscriber->onImplicitLogin($event);
     }
 }

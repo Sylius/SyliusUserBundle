@@ -28,12 +28,14 @@ final class ChangePasswordTest extends TestCase
     public function testHasCurrentPassword(): void
     {
         $this->changePassword->setCurrentPassword('testPassword');
+
         $this->assertSame('testPassword', $this->changePassword->getCurrentPassword());
     }
 
     public function testHasNewPassword(): void
     {
         $this->changePassword->setNewPassword('testPassword');
+
         $this->assertSame('testPassword', $this->changePassword->getNewPassword());
     }
 }

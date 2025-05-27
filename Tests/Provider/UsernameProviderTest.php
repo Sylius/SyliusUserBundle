@@ -25,19 +25,22 @@ use Symfony\Component\Security\Core\User\UserProviderInterface;
 
 final class UsernameProviderTest extends TestCase
 {
-    /** @var UserRepositoryInterface|MockObject */
-    private MockObject $userRepositoryMock;
+    private UserRepositoryInterface&MockObject $userRepository;
 
-    /** @var CanonicalizerInterface|MockObject */
-    private MockObject $canonicalizerMock;
+    private CanonicalizerInterface&MockObject $canonicalizer;
 
     private UsernameProvider $usernameProvider;
 
     protected function setUp(): void
     {
-        $this->userRepositoryMock = $this->createMock(UserRepositoryInterface::class);
-        $this->canonicalizerMock = $this->createMock(CanonicalizerInterface::class);
-        $this->usernameProvider = new UsernameProvider(User::class, $this->userRepositoryMock, $this->canonicalizerMock);
+        $this->userRepository = $this->createMock(UserRepositoryInterface::class);
+        $this->canonicalizer = $this->createMock(CanonicalizerInterface::class);
+
+        $this->usernameProvider = new UsernameProvider(
+            User::class,
+            $this->userRepository,
+            $this->canonicalizer,
+        );
     }
 
     public function testImplementsSymfonyUserProviderInterface(): void
@@ -52,27 +55,43 @@ final class UsernameProviderTest extends TestCase
 
     public function testLoadsUserByUserName(): void
     {
-        /** @var User&MockObject $userMock */
-        $userMock = $this->createMock(User::class);
-        $this->canonicalizerMock->expects($this->once())->method('canonicalize')->with('testUser')->willReturn('testuser');
-        $this->userRepositoryMock->expects($this->once())->method('findOneBy')->with(['usernameCanonical' => 'testuser'])->willReturn($userMock);
-        $this->assertSame($userMock, $this->usernameProvider->loadUserByUsername('testUser'));
+        /** @var User&MockObject $user */
+        $user = $this->createMock(User::class);
+
+        $this->canonicalizer
+            ->expects($this->once())
+            ->method('canonicalize')
+            ->with('testUser')
+            ->willReturn('testuser')
+        ;
+        $this->userRepository
+            ->expects($this->once())
+            ->method('findOneBy')
+            ->with(['usernameCanonical' => 'testuser'])
+            ->willReturn($user)
+        ;
+
+        $this->assertSame($user, $this->usernameProvider->loadUserByUsername('testUser'));
     }
 
     public function testUpdatesUserByUserName(): void
     {
-        /** @var User&MockObject $userMock */
-        $userMock = $this->createMock(User::class);
-        $this->userRepositoryMock->expects($this->once())->method('find')->with(1)->willReturn($userMock);
-        $userMock->expects($this->once())->method('getId')->willReturn(1);
-        $this->assertSame($userMock, $this->usernameProvider->refreshUser($userMock));
+        /** @var User&MockObject $user */
+        $user = $this->createMock(User::class);
+
+        $this->userRepository->expects($this->once())->method('find')->with(1)->willReturn($user);
+        $user->expects($this->once())->method('getId')->willReturn(1);
+
+        $this->assertSame($user, $this->usernameProvider->refreshUser($user));
     }
 
     public function testThrowExceptionWhenUnsupportedUserIsUsed(): void
     {
-        /** @var UserInterface&MockObject $userMock */
-        $userMock = $this->createMock(UserInterface::class);
+        /** @var UserInterface&MockObject $user */
+        $user = $this->createMock(UserInterface::class);
+
         $this->expectException(UnsupportedUserException::class);
-        $this->usernameProvider->refreshUser($userMock);
+
+        $this->usernameProvider->refreshUser($user);
     }
 }

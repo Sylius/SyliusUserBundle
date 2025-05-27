@@ -22,15 +22,15 @@ use Sylius\Component\User\Model\UserInterface;
 
 final class UserReloaderTest extends TestCase
 {
-    /** @var ObjectManager|MockObject */
-    private MockObject $objectManagerMock;
+    private ObjectManager&MockObject $objectManager;
 
     private UserReloader $userReloader;
 
     protected function setUp(): void
     {
-        $this->objectManagerMock = $this->createMock(ObjectManager::class);
-        $this->userReloader = new UserReloader($this->objectManagerMock);
+        $this->objectManager = $this->createMock(ObjectManager::class);
+
+        $this->userReloader = new UserReloader($this->objectManager);
     }
 
     public function testImplementsUserReloaderInterface(): void
@@ -40,9 +40,11 @@ final class UserReloaderTest extends TestCase
 
     public function testReloadsUser(): void
     {
-        /** @var UserInterface&MockObject $userMock */
-        $userMock = $this->createMock(UserInterface::class);
-        $this->objectManagerMock->expects($this->once())->method('refresh')->with($userMock);
-        $this->userReloader->reloadUser($userMock);
+        /** @var UserInterface&MockObject $user */
+        $user = $this->createMock(UserInterface::class);
+
+        $this->objectManager->expects($this->once())->method('refresh')->with($user);
+
+        $this->userReloader->reloadUser($user);
     }
 }

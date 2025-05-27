@@ -28,6 +28,7 @@ final class PasswordResetTest extends TestCase
     public function testHasNewPassword(): void
     {
         $this->passwordReset->setPassword('testPassword');
+
         $this->assertSame('testPassword', $this->passwordReset->getPassword());
     }
 }

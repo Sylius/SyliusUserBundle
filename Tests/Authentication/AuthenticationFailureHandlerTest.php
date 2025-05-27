@@ -25,34 +25,38 @@ use Symfony\Component\Security\Http\HttpUtils;
 
 final class AuthenticationFailureHandlerTest extends TestCase
 {
-    /** @var HttpKernelInterface|MockObject */
-    private MockObject $httpKernelMock;
+    private HttpKernelInterface&MockObject $httpKernel;
 
-    /** @var HttpUtils|MockObject */
-    private MockObject $httpUtilsMock;
+    private HttpUtils&MockObject $httpUtils;
 
     private AuthenticationFailureHandler $authenticationFailureHandler;
 
     protected function setUp(): void
     {
-        $this->httpKernelMock = $this->createMock(HttpKernelInterface::class);
-        $this->httpUtilsMock = $this->createMock(HttpUtils::class);
-        $this->authenticationFailureHandler = new AuthenticationFailureHandler($this->httpKernelMock, $this->httpUtilsMock);
+        $this->httpKernel = $this->createMock(HttpKernelInterface::class);
+        $this->httpUtils = $this->createMock(HttpUtils::class);
+
+        $this->authenticationFailureHandler = new AuthenticationFailureHandler($this->httpKernel, $this->httpUtils);
     }
 
-    public function testAAuthenticationFailureHandler(): void
+    public function testAuthenticationFailureHandler(): void
     {
         $this->assertInstanceOf(AuthenticationFailureHandlerInterface::class, $this->authenticationFailureHandler);
     }
 
     public function testReturnsJsonResponseIfRequestIsXmlBased(): void
     {
-        /** @var Request&MockObject $requestMock */
-        $requestMock = $this->createMock(Request::class);
-        /** @var AuthenticationException&MockObject $authenticationExceptionMock */
-        $authenticationExceptionMock = $this->createMock(AuthenticationException::class);
-        $requestMock->expects($this->once())->method('isXmlHttpRequest')->willReturn(true);
-        $authenticationExceptionMock->expects($this->once())->method('getMessageKey')->willReturn('Invalid credentials.');
-        $this->assertInstanceOf(JsonResponse::class, $this->authenticationFailureHandler->onAuthenticationFailure($requestMock, $authenticationExceptionMock));
+        /** @var Request&MockObject $request */
+        $request = $this->createMock(Request::class);
+        /** @var AuthenticationException&MockObject $authenticationException */
+
+        $authenticationException = $this->createMock(AuthenticationException::class);
+        $request->expects($this->once())->method('isXmlHttpRequest')->willReturn(true);
+        $authenticationException->expects($this->once())->method('getMessageKey')->willReturn('Invalid credentials.');
+
+        $this->assertInstanceOf(
+            JsonResponse::class,
+            $this->authenticationFailureHandler->onAuthenticationFailure($request, $authenticationException),
+        );
     }
 }

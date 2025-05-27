@@ -20,19 +20,19 @@ use Sylius\Component\User\Model\UserInterface;
 
 final class UserEventTest extends TestCase
 {
-    /** @var UserInterface|MockObject */
-    private MockObject $userMock;
+    private UserInterface&MockObject $user;
 
     private UserEvent $userEvent;
 
     protected function setUp(): void
     {
-        $this->userMock = $this->createMock(UserInterface::class);
-        $this->userEvent = new UserEvent($this->userMock);
+        $this->user = $this->createMock(UserInterface::class);
+
+        $this->userEvent = new UserEvent($this->user);
     }
 
     public function testHasUser(): void
     {
-        $this->assertSame($this->userMock, $this->userEvent->getUser());
+        $this->assertSame($this->user, $this->userEvent->getUser());
     }
 }

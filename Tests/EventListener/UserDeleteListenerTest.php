@@ -27,136 +27,144 @@ use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 
 final class UserDeleteListenerTest extends TestCase
 {
-    /** @var TokenStorageInterface|MockObject */
-    private MockObject $tokenStorageMock;
+    private TokenStorageInterface&MockObject $tokenStorage;
 
-    /** @var RequestStack|MockObject */
-    private MockObject $requestStackMock;
+    private RequestStack&MockObject $requestStack;
 
-    /** @var SessionInterface|MockObject */
-    private MockObject $sessionMock;
+    private SessionInterface&MockObject $session;
 
-    /** @var FlashBagInterface|MockObject */
-    private MockObject $flashBagMock;
+    private FlashBagInterface&MockObject $flashBag;
 
     private UserDeleteListener $userDeleteListener;
 
     protected function setUp(): void
     {
-        $this->tokenStorageMock = $this->createMock(TokenStorageInterface::class);
-        $this->requestStackMock = $this->createMock(RequestStack::class);
-        $this->sessionMock = $this->createMock(SessionInterface::class);
-        $this->flashBagMock = $this->createMock(FlashBagInterface::class);
-        $this->userDeleteListener = new UserDeleteListener($this->tokenStorageMock, $this->requestStackMock);
+        $this->tokenStorage = $this->createMock(TokenStorageInterface::class);
+        $this->requestStack = $this->createMock(RequestStack::class);
+        $this->session = $this->createMock(SessionInterface::class);
+        $this->flashBag = $this->createMock(FlashBagInterface::class);
+
+        $this->userDeleteListener = new UserDeleteListener($this->tokenStorage, $this->requestStack);
     }
 
     public function testDeletesUserIfItIsDifferentThanCurrentlyLoggedOne(): void
     {
-        /** @var GenericEvent&MockObject $eventMock */
-        $eventMock = $this->createMock(GenericEvent::class);
-        /** @var UserInterface&MockObject $userToBeDeletedMock */
-        $userToBeDeletedMock = $this->createMock(UserInterface::class);
-        /** @var UserInterface&MockObject $currentlyLoggedUserMock */
-        $currentlyLoggedUserMock = $this->createMock(UserInterface::class);
-        /** @var TokenInterface&MockObject $tokenInterfaceMock */
-        $tokenInterfaceMock = $this->createMock(TokenInterface::class);
+        /** @var GenericEvent&MockObject $event */
+        $event = $this->createMock(GenericEvent::class);
+        /** @var UserInterface&MockObject $userToBeDeleted */
+        $userToBeDeleted = $this->createMock(UserInterface::class);
+        /** @var UserInterface&MockObject $currentlyLoggedUser */
+        $currentlyLoggedUser = $this->createMock(UserInterface::class);
+        /** @var TokenInterface&MockObject $tokenInterface */
+        $tokenInterface = $this->createMock(TokenInterface::class);
 
-        $eventMock->expects($this->once())->method('getSubject')->willReturn($userToBeDeletedMock);
-        $userToBeDeletedMock->expects($this->once())->method('getId')->willReturn(11);
-        $this->tokenStorageMock->expects($this->once())->method('getToken')->willReturn($tokenInterfaceMock);
-        $currentlyLoggedUserMock->expects($this->once())->method('getId')->willReturn(1);
-        $tokenInterfaceMock->expects($this->once())->method('getUser')->willReturn($currentlyLoggedUserMock);
-        $eventMock->expects($this->never())->method('stopPropagation');
-        $this->flashBagMock->expects($this->never())->method('add');
+        $event->expects($this->once())->method('getSubject')->willReturn($userToBeDeleted);
+        $userToBeDeleted->expects($this->once())->method('getId')->willReturn(11);
+        $this->tokenStorage->expects($this->once())->method('getToken')->willReturn($tokenInterface);
+        $currentlyLoggedUser->expects($this->once())->method('getId')->willReturn(1);
+        $tokenInterface->expects($this->once())->method('getUser')->willReturn($currentlyLoggedUser);
+        $event->expects($this->never())->method('stopPropagation');
+        $this->flashBag->expects($this->never())->method('add');
 
-        $this->userDeleteListener->deleteUser($eventMock);
+        $this->userDeleteListener->deleteUser($event);
     }
 
     public function testDeletesUserIfNoUserIsLoggedIn(): void
     {
-        /** @var GenericEvent&MockObject $eventMock */
-        $eventMock = $this->createMock(GenericEvent::class);
-        /** @var UserInterface&MockObject $userToBeDeletedMock */
-        $userToBeDeletedMock = $this->createMock(UserInterface::class);
-        /** @var TokenInterface&MockObject $tokenInterfaceMock */
-        $tokenInterfaceMock = $this->createMock(TokenInterface::class);
-        $eventMock->expects($this->once())->method('getSubject')->willReturn($userToBeDeletedMock);
-        $this->tokenStorageMock->expects($this->once())->method('getToken')->willReturn($tokenInterfaceMock);
-        $tokenInterfaceMock->expects($this->once())->method('getUser')->willReturn(null);
-        $eventMock->expects($this->never())->method('stopPropagation');
-        $eventMock->expects($this->never())->method('setErrorCode');
-        $eventMock->expects($this->never())->method('setMessage');
-        $this->flashBagMock->expects($this->never())->method('add');
+        /** @var GenericEvent&MockObject $event */
+        $event = $this->createMock(GenericEvent::class);
+        /** @var UserInterface&MockObject $userToBeDeleted */
+        $userToBeDeleted = $this->createMock(UserInterface::class);
+        /** @var TokenInterface&MockObject $tokenInterface */
+        $tokenInterface = $this->createMock(TokenInterface::class);
 
-        $this->userDeleteListener->deleteUser($eventMock);
+        $event->expects($this->once())->method('getSubject')->willReturn($userToBeDeleted);
+        $this->tokenStorage->expects($this->once())->method('getToken')->willReturn($tokenInterface);
+        $tokenInterface->expects($this->once())->method('getUser')->willReturn(null);
+        $event->expects($this->never())->method('stopPropagation');
+        $event->expects($this->never())->method('setErrorCode');
+        $event->expects($this->never())->method('setMessage');
+        $this->flashBag->expects($this->never())->method('add');
+
+        $this->userDeleteListener->deleteUser($event);
     }
 
     public function testDeletesUserIfThereIsNoToken(): void
     {
-        /** @var GenericEvent&MockObject $eventMock */
-        $eventMock = $this->createMock(GenericEvent::class);
-        /** @var UserInterface&MockObject $userToBeDeletedMock */
-        $userToBeDeletedMock = $this->createMock(UserInterface::class);
-        $eventMock->expects($this->once())->method('getSubject')->willReturn($userToBeDeletedMock);
-        $this->tokenStorageMock->expects($this->once())->method('getToken')->willReturn(null);
-        $eventMock->expects($this->never())->method('stopPropagation');
-        $eventMock->expects($this->never())->method('setErrorCode');
-        $eventMock->expects($this->never())->method('setMessage');
-        $this->flashBagMock->expects($this->never())->method('add');
-        $this->userDeleteListener->deleteUser($eventMock);
+        /** @var GenericEvent&MockObject $event */
+        $event = $this->createMock(GenericEvent::class);
+        /** @var UserInterface&MockObject $userToBeDeleted */
+        $userToBeDeleted = $this->createMock(UserInterface::class);
+
+        $event->expects($this->once())->method('getSubject')->willReturn($userToBeDeleted);
+        $this->tokenStorage->expects($this->once())->method('getToken')->willReturn(null);
+        $event->expects($this->never())->method('stopPropagation');
+        $event->expects($this->never())->method('setErrorCode');
+        $event->expects($this->never())->method('setMessage');
+        $this->flashBag->expects($this->never())->method('add');
+
+        $this->userDeleteListener->deleteUser($event);
     }
 
     public function testDoesNotAllowToDeleteCurrentlyLoggedUser(): void
     {
-        /** @var GenericEvent&MockObject $eventMock */
-        $eventMock = $this->createMock(GenericEvent::class);
-        /** @var UserInterface&MockObject $userToBeDeletedMock */
-        $userToBeDeletedMock = $this->createMock(UserInterface::class);
-        /** @var UserInterface&MockObject $currentlyLoggedInUserMock */
-        $currentlyLoggedInUserMock = $this->createMock(UserInterface::class);
-        /** @var TokenInterface&MockObject $tokenMock */
-        $tokenMock = $this->createMock(TokenInterface::class);
+        /** @var GenericEvent&MockObject $event */
+        $event = $this->createMock(GenericEvent::class);
+        /** @var UserInterface&MockObject $userToBeDeleted */
+        $userToBeDeleted = $this->createMock(UserInterface::class);
+        /** @var UserInterface&MockObject $currentlyLoggedInUser */
+        $currentlyLoggedInUser = $this->createMock(UserInterface::class);
+        /** @var TokenInterface&MockObject $token */
+        $token = $this->createMock(TokenInterface::class);
 
-        $this->requestStackMock->expects($this->once())->method('getSession')->willReturn($this->sessionMock);
-        $this->sessionMock->expects($this->once())->method('getBag')->with('flashes')->willReturn($this->flashBagMock);
+        $this->requestStack->expects($this->once())->method('getSession')->willReturn($this->session);
+        $this->session->expects($this->once())->method('getBag')->with('flashes')->willReturn($this->flashBag);
 
-        $eventMock->expects($this->once())->method('getSubject')->willReturn($userToBeDeletedMock);
-        $userToBeDeletedMock->expects($this->once())->method('getId')->willReturn(1);
-        $userToBeDeletedMock->expects($this->once())->method('getRoles')->willReturn(['ROLE_ADMINISTRATION_ACCESS']);
-        $this->tokenStorageMock->expects($this->once())->method('getToken')->willReturn($tokenMock);
-        $currentlyLoggedInUserMock->expects($this->once())->method('getId')->willReturn(1);
-        $currentlyLoggedInUserMock->expects($this->once())->method('getRoles')->willReturn(['ROLE_ADMINISTRATION_ACCESS']);
-        $tokenMock->expects($this->once())->method('getUser')->willReturn($currentlyLoggedInUserMock);
-        $eventMock->expects($this->once())->method('stopPropagation');
-        $eventMock->expects($this->once())->method('setErrorCode')->with(Response::HTTP_UNPROCESSABLE_ENTITY);
-        $eventMock->expects($this->once())->method('setMessage')->with('Cannot remove currently logged in user.');
-        $this->flashBagMock->expects($this->once())->method('add')->with('error', 'Cannot remove currently logged in user.');
-        $this->userDeleteListener->deleteUser($eventMock);
+        $event->expects($this->once())->method('getSubject')->willReturn($userToBeDeleted);
+        $userToBeDeleted->expects($this->once())->method('getId')->willReturn(1);
+        $userToBeDeleted->expects($this->once())->method('getRoles')->willReturn(['ROLE_ADMINISTRATION_ACCESS']);
+
+        $currentlyLoggedInUser->expects($this->once())->method('getId')->willReturn(1);
+        $currentlyLoggedInUser->expects($this->once())->method('getRoles')->willReturn(['ROLE_ADMINISTRATION_ACCESS']);
+
+        $this->tokenStorage->expects($this->once())->method('getToken')->willReturn($token);
+
+        $token->expects($this->once())->method('getUser')->willReturn($currentlyLoggedInUser);
+        $event->expects($this->once())->method('stopPropagation');
+        $event->expects($this->once())->method('setErrorCode')->with(Response::HTTP_UNPROCESSABLE_ENTITY);
+        $event->expects($this->once())->method('setMessage')->with('Cannot remove currently logged in user.');
+
+        $this->flashBag->expects($this->once())->method('add')->with('error', 'Cannot remove currently logged in user.');
+
+        $this->userDeleteListener->deleteUser($event);
     }
 
     public function testDeletesShopUserEvenIfAdminUserHasSameId(): void
     {
-        /** @var GenericEvent&MockObject $eventMock */
-        $eventMock = $this->createMock(GenericEvent::class);
-        /** @var UserInterface&MockObject $userToBeDeletedMock */
-        $userToBeDeletedMock = $this->createMock(UserInterface::class);
-        /** @var UserInterface&MockObject $currentlyLoggedInUserMock */
-        $currentlyLoggedInUserMock = $this->createMock(UserInterface::class);
-        /** @var TokenInterface&MockObject $tokenMock */
-        $tokenMock = $this->createMock(TokenInterface::class);
+        /** @var GenericEvent&MockObject $event */
+        $event = $this->createMock(GenericEvent::class);
+        /** @var UserInterface&MockObject $userToBeDeleted */
+        $userToBeDeleted = $this->createMock(UserInterface::class);
+        /** @var UserInterface&MockObject $currentlyLoggedInUser */
+        $currentlyLoggedInUser = $this->createMock(UserInterface::class);
+        /** @var TokenInterface&MockObject $token */
+        $token = $this->createMock(TokenInterface::class);
 
-        $eventMock->expects($this->once())->method('getSubject')->willReturn($userToBeDeletedMock);
-        $userToBeDeletedMock->expects($this->once())->method('getId')->willReturn(1);
-        $userToBeDeletedMock->expects($this->once())->method('getRoles')->willReturn(['ROLE_API_ACCESS']);
-        $this->tokenStorageMock->expects($this->once())->method('getToken')->willReturn($tokenMock);
-        $currentlyLoggedInUserMock->expects($this->once())->method('getId')->willReturn(1);
-        $currentlyLoggedInUserMock->expects($this->once())->method('getRoles')->willReturn(['ROLE_ADMINISTRATION_ACCESS']);
-        $tokenMock->expects($this->once())->method('getUser')->willReturn($currentlyLoggedInUserMock);
-        $eventMock->expects($this->never())->method('stopPropagation');
-        $eventMock->expects($this->never())->method('setErrorCode');
-        $eventMock->expects($this->never())->method('setMessage');
-        $this->flashBagMock->expects($this->never())->method('add');
+        $event->expects($this->once())->method('getSubject')->willReturn($userToBeDeleted);
+        $userToBeDeleted->expects($this->once())->method('getId')->willReturn(1);
+        $userToBeDeleted->expects($this->once())->method('getRoles')->willReturn(['ROLE_API_ACCESS']);
 
-        $this->userDeleteListener->deleteUser($eventMock);
+        $currentlyLoggedInUser->expects($this->once())->method('getId')->willReturn(1);
+        $currentlyLoggedInUser->expects($this->once())->method('getRoles')->willReturn(['ROLE_ADMINISTRATION_ACCESS']);
+
+        $this->tokenStorage->expects($this->once())->method('getToken')->willReturn($token);
+        $token->expects($this->once())->method('getUser')->willReturn($currentlyLoggedInUser);
+        $event->expects($this->never())->method('stopPropagation');
+        $event->expects($this->never())->method('setErrorCode');
+        $event->expects($this->never())->method('setMessage');
+
+        $this->flashBag->expects($this->never())->method('add');
+
+        $this->userDeleteListener->deleteUser($event);
     }
 }

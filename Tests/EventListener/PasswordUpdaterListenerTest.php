@@ -20,81 +20,93 @@ use Sylius\Bundle\UserBundle\EventListener\PasswordUpdaterListener;
 use Sylius\Component\User\Model\UserInterface;
 use Sylius\Component\User\Security\PasswordUpdaterInterface;
 use Symfony\Component\EventDispatcher\GenericEvent;
-use TypeError;
 
 final class PasswordUpdaterListenerTest extends TestCase
 {
-    /** @var PasswordUpdaterInterface|MockObject */
-    private MockObject $passwordUpdaterMock;
+    private PasswordUpdaterInterface&MockObject $passwordUpdater;
 
     private PasswordUpdaterListener $passwordUpdaterListener;
 
     protected function setUp(): void
     {
-        $this->passwordUpdaterMock = $this->createMock(PasswordUpdaterInterface::class);
-        $this->passwordUpdaterListener = new PasswordUpdaterListener($this->passwordUpdaterMock);
+        $this->passwordUpdater = $this->createMock(PasswordUpdaterInterface::class);
+
+        $this->passwordUpdaterListener = new PasswordUpdaterListener($this->passwordUpdater);
     }
 
     public function testUpdatesPasswordForGenericEvent(): void
     {
-        /** @var GenericEvent&MockObject $eventMock */
-        $eventMock = $this->createMock(GenericEvent::class);
-        /** @var UserInterface&MockObject $userMock */
-        $userMock = $this->createMock(UserInterface::class);
-        $eventMock->expects($this->once())->method('getSubject')->willReturn($userMock);
-        $userMock->expects($this->once())->method('getPlainPassword')->willReturn('testPassword');
-        $this->passwordUpdaterMock->expects($this->once())->method('updatePassword')->with($userMock);
-        $this->passwordUpdaterListener->genericEventUpdater($eventMock);
+        /** @var GenericEvent&MockObject $event */
+        $event = $this->createMock(GenericEvent::class);
+        /** @var UserInterface&MockObject $user */
+        $user = $this->createMock(UserInterface::class);
+
+        $event->expects($this->once())->method('getSubject')->willReturn($user);
+        $user->expects($this->once())->method('getPlainPassword')->willReturn('testPassword');
+        $this->passwordUpdater->expects($this->once())->method('updatePassword')->with($user);
+
+        $this->passwordUpdaterListener->genericEventUpdater($event);
     }
 
     public function testAllowsToUpdatePasswordForGenericEventForUserInterfaceImplementationOnly(): void
     {
-        /** @var GenericEvent&MockObject $eventMock */
-        $eventMock = $this->createMock(GenericEvent::class);
-        $eventMock->expects($this->once())->method('getSubject')->willReturn('user');
-        $this->expectException(TypeError::class);
-        $this->passwordUpdaterListener->genericEventUpdater($eventMock);
+        /** @var GenericEvent&MockObject $event */
+        $event = $this->createMock(GenericEvent::class);
+
+        $event->expects($this->once())->method('getSubject')->willReturn('user');
+
+        $this->expectException(\TypeError::class);
+
+        $this->passwordUpdaterListener->genericEventUpdater($event);
     }
 
     public function testUpdatesPasswordOnPrePersistDoctrineEvent(): void
     {
-        /** @var LifecycleEventArgs&MockObject $eventMock */
-        $eventMock = $this->createMock(LifecycleEventArgs::class);
-        /** @var UserInterface&MockObject $userMock */
-        $userMock = $this->createMock(UserInterface::class);
-        $eventMock->expects($this->once())->method('getObject')->willReturn($userMock);
-        $userMock->expects($this->once())->method('getPlainPassword')->willReturn('testPassword');
-        $this->passwordUpdaterMock->expects($this->once())->method('updatePassword')->with($userMock);
-        $this->passwordUpdaterListener->prePersist($eventMock);
+        /** @var LifecycleEventArgs&MockObject $event */
+        $event = $this->createMock(LifecycleEventArgs::class);
+        /** @var UserInterface&MockObject $user */
+        $user = $this->createMock(UserInterface::class);
+
+        $event->expects($this->once())->method('getObject')->willReturn($user);
+        $user->expects($this->once())->method('getPlainPassword')->willReturn('testPassword');
+        $this->passwordUpdater->expects($this->once())->method('updatePassword')->with($user);
+
+        $this->passwordUpdaterListener->prePersist($event);
     }
 
     public function testUpdatesPasswordOnPreUpdateDoctrineEvent(): void
     {
-        /** @var LifecycleEventArgs&MockObject $eventMock */
-        $eventMock = $this->createMock(LifecycleEventArgs::class);
-        /** @var UserInterface&MockObject $userMock */
-        $userMock = $this->createMock(UserInterface::class);
-        $eventMock->expects($this->once())->method('getObject')->willReturn($userMock);
-        $userMock->expects($this->once())->method('getPlainPassword')->willReturn('testPassword');
-        $this->passwordUpdaterMock->expects($this->once())->method('updatePassword')->with($userMock);
-        $this->passwordUpdaterListener->preUpdate($eventMock);
+        /** @var LifecycleEventArgs&MockObject $event */
+        $event = $this->createMock(LifecycleEventArgs::class);
+        /** @var UserInterface&MockObject $user */
+        $user = $this->createMock(UserInterface::class);
+
+        $event->expects($this->once())->method('getObject')->willReturn($user);
+        $user->expects($this->once())->method('getPlainPassword')->willReturn('testPassword');
+        $this->passwordUpdater->expects($this->once())->method('updatePassword')->with($user);
+
+        $this->passwordUpdaterListener->preUpdate($event);
     }
 
     public function testUpdatesPasswordOnPrePersistDoctrineEventForUserInterfaceImplementationOnly(): void
     {
-        /** @var LifecycleEventArgs&MockObject $eventMock */
-        $eventMock = $this->createMock(LifecycleEventArgs::class);
-        $eventMock->expects($this->once())->method('getObject')->willReturn('user');
-        $this->passwordUpdaterMock->expects($this->never())->method('updatePassword');
-        $this->passwordUpdaterListener->prePersist($eventMock);
+        /** @var LifecycleEventArgs&MockObject $event */
+        $event = $this->createMock(LifecycleEventArgs::class);
+
+        $event->expects($this->once())->method('getObject')->willReturn('user');
+        $this->passwordUpdater->expects($this->never())->method('updatePassword');
+
+        $this->passwordUpdaterListener->prePersist($event);
     }
 
     public function testUpdatesPasswordOnPreUpdateDoctrineEventForUserInterfaceImplementationOnly(): void
     {
-        /** @var LifecycleEventArgs&MockObject $eventMock */
-        $eventMock = $this->createMock(LifecycleEventArgs::class);
-        $eventMock->expects($this->once())->method('getObject')->willReturn('user');
-        $this->passwordUpdaterMock->expects($this->never())->method('updatePassword');
-        $this->passwordUpdaterListener->preUpdate($eventMock);
+        /** @var LifecycleEventArgs&MockObject $event */
+        $event = $this->createMock(LifecycleEventArgs::class);
+
+        $event->expects($this->once())->method('getObject')->willReturn('user');
+        $this->passwordUpdater->expects($this->never())->method('updatePassword');
+
+        $this->passwordUpdaterListener->preUpdate($event);
     }
 }

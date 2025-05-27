@@ -28,6 +28,7 @@ final class PasswordResetRequestTest extends TestCase
     public function testHasEmail(): void
     {
         $this->passwordResetRequest->setEmail('test@example.com');
+
         $this->assertSame('test@example.com', $this->passwordResetRequest->getEmail());
     }
 }
