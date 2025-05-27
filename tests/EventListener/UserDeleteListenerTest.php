@@ -27,11 +27,11 @@ use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 
 final class UserDeleteListenerTest extends TestCase
 {
-    private TokenStorageInterface&MockObject $tokenStorage;
+    private MockObject&TokenStorageInterface $tokenStorage;
 
-    private RequestStack&MockObject $requestStack;
+    private MockObject&RequestStack $requestStack;
 
-    private SessionInterface&MockObject $session;
+    private MockObject&SessionInterface $session;
 
     private FlashBagInterface&MockObject $flashBag;
 

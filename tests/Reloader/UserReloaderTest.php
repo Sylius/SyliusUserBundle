@@ -22,7 +22,7 @@ use Sylius\Component\User\Model\UserInterface;
 
 final class UserReloaderTest extends TestCase
 {
-    private ObjectManager&MockObject $objectManager;
+    private MockObject&ObjectManager $objectManager;
 
     private UserReloader $userReloader;
 

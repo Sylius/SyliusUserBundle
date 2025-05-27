@@ -26,7 +26,7 @@ use Symfony\Component\Security\Core\User\UserProviderInterface;
 
 final class UsernameOrEmailProviderTest extends TestCase
 {
-    private UserRepositoryInterface&MockObject $userRepository;
+    private MockObject&UserRepositoryInterface $userRepository;
 
     private CanonicalizerInterface&MockObject $canonicalizer;
 

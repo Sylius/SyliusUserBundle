@@ -22,7 +22,7 @@ use Symfony\Component\EventDispatcher\GenericEvent;
 
 final class UserReloaderListenerTest extends TestCase
 {
-    private UserReloaderInterface&MockObject $userReloader;
+    private MockObject&UserReloaderInterface $userReloader;
 
     private UserReloaderListener $userReloaderListener;
 

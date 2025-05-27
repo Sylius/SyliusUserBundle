@@ -20,7 +20,7 @@ use Sylius\Component\User\Model\UserInterface;
 
 final class UserEventTest extends TestCase
 {
-    private UserInterface&MockObject $user;
+    private MockObject&UserInterface $user;
 
     private UserEvent $userEvent;
 

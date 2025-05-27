@@ -29,7 +29,7 @@ use Symfony\Component\Security\Http\SecurityEvents;
 
 final class UserLastLoginSubscriberTest extends TestCase
 {
-    private ObjectManager&MockObject $userManager;
+    private MockObject&ObjectManager $userManager;
 
     private UserLastLoginSubscriber $userLastLoginSubscriber;
 

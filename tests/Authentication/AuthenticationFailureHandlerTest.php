@@ -49,7 +49,6 @@ final class AuthenticationFailureHandlerTest extends TestCase
         /** @var Request&MockObject $request */
         $request = $this->createMock(Request::class);
         /** @var AuthenticationException&MockObject $authenticationException */
-
         $authenticationException = $this->createMock(AuthenticationException::class);
         $request->expects($this->once())->method('isXmlHttpRequest')->willReturn(true);
         $authenticationException->expects($this->once())->method('getMessageKey')->willReturn('Invalid credentials.');
