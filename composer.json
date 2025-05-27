@@ -85,7 +85,7 @@
             "Tests\\Sylius\\Bundle\\UserBundle\\": "tests/"
         },
         "files": [
-            "Tests/Functional/app/AppKernel.php"
+            "tests/Functional/app/AppKernel.php"
         ]
     },
     "repositories": [
