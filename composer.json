@@ -77,7 +77,7 @@
             "Sylius\\Bundle\\UserBundle\\": ""
         },
         "exclude-from-classmap": [
-            "/Tests/"
+            "/tests/"
         ]
     },
     "autoload-dev": {
