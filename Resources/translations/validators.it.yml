@@ -6,7 +6,7 @@ sylius:
         email:
             not_blank: 'Per favore inserisci la tua email.'
             invalid: 'Questa email non è valida.'
-            not_registered: 'L\'utente con questa email non esiste. Per favore registrati prima.'
+            not_registered: 'L''utente con questa email non esiste. Per favore registrati prima.'
         plainPassword:
             not_blank: 'Per favore inserisci la tua password.'
             mismatch: 'Le password inserite non corrispondono.'
