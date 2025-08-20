@@ -22,4 +22,3 @@ sylius:
         user_reset_password:
             confirmation: 'Bevestiging'
             new: 'Nieuw wachtwoord'
-

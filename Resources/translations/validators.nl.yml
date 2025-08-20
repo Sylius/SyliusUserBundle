@@ -14,4 +14,3 @@ sylius:
         password:
             min: 'Wachtwoord moet minstens {{ limit }} tekens lang zijn.'
             max: 'Wachtwoord mag niet langer zijn dan {{ limit }} tekens.'
-
