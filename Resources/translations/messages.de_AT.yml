@@ -10,7 +10,7 @@ sylius:
                 label: 'Passwort'
                 confirmation: 'Bestätigung'
             remember_me: 'Angemeldet bleiben'
-            shipping_address: 'Versandadresse'
+            shipping_address: 'Lieferadresse'
             username: 'Benutzername'
             verified: 'Verifiziert'
         user_filter:

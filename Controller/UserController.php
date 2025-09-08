@@ -211,7 +211,7 @@ class UserController extends ResourceController
             Assert::isInstanceOf($userRepository, UserRepositoryInterface::class);
 
             $user = $userRepository->findOneByEmail($passwordReset->getEmail());
-            if (null !== $user) {
+            if (null !== $user && $user->isEnabled()) {
                 $this->handleResetPasswordRequest($generator, $user, $senderEvent);
             }
 
