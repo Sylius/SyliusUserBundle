@@ -23,6 +23,7 @@ final class AuthenticationFailureHandler extends DefaultAuthenticationFailureHan
 {
     public function onAuthenticationFailure(Request $request, AuthenticationException $exception): Response
     {
+        //getMessage()
         if ($request->isXmlHttpRequest()) {
             return new JsonResponse(['success' => false, 'message' => $exception->getMessageKey()], 401);
         }
