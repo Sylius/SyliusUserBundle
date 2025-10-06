@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace spec\Sylius\Bundle\UserBundle\Authentication;
 
 use PhpSpec\ObjectBehavior;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
@@ -21,12 +22,17 @@ use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Security\Http\Authentication\AuthenticationFailureHandlerInterface;
 use Symfony\Component\Security\Http\Authentication\DefaultAuthenticationFailureHandler;
 use Symfony\Component\Security\Http\HttpUtils;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 final class AuthenticationFailureHandlerSpec extends ObjectBehavior
 {
-    function let(HttpKernelInterface $httpKernel, HttpUtils $httpUtils): void
-    {
-        $this->beConstructedWith($httpKernel, $httpUtils);
+    function let(
+        HttpKernelInterface $httpKernel,
+        HttpUtils $httpUtils,
+        LoggerInterface $logger,
+        TranslatorInterface $translator,
+    ): void {
+        $this->beConstructedWith($httpKernel, $httpUtils, [], $logger, $translator);
     }
 
     function it_extends_default_authentication_failure_handler(): void
@@ -42,9 +48,14 @@ final class AuthenticationFailureHandlerSpec extends ObjectBehavior
     function it_returns_json_response_if_request_is_xml_based(
         Request $request,
         AuthenticationException $authenticationException,
+        TranslatorInterface $translator,
     ): void {
         $request->isXmlHttpRequest()->willReturn(true);
+        $request->getLocale()->willReturn('fr');
         $authenticationException->getMessageKey()->willReturn('Invalid credentials.');
+        $translator->trans('Invalid credentials.', [], 'security', 'fr')
+            ->willReturn('Identifiants invalides.')
+            ->shouldBeCalled();
 
         $this->onAuthenticationFailure($request, $authenticationException)->shouldHaveType(JsonResponse::class);
     }
