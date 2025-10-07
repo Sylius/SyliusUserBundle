@@ -45,7 +45,7 @@ final class AuthenticationFailureHandlerSpec extends ObjectBehavior
         $this->shouldImplement(AuthenticationFailureHandlerInterface::class);
     }
 
-    function it_returns_json_response_if_request_is_xml_based(
+    function it_returns_translated_json_response_if_request_is_xml_based(
         Request $request,
         AuthenticationException $authenticationException,
         TranslatorInterface $translator,
@@ -55,7 +55,8 @@ final class AuthenticationFailureHandlerSpec extends ObjectBehavior
         $authenticationException->getMessageKey()->willReturn('Invalid credentials.');
         $translator->trans('Invalid credentials.', [], 'security', 'fr')
             ->willReturn('Identifiants invalides.')
-            ->shouldBeCalled();
+            ->shouldBeCalled()
+        ;
 
         $this->onAuthenticationFailure($request, $authenticationException)->shouldHaveType(JsonResponse::class);
     }

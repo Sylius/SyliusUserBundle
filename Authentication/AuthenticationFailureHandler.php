@@ -40,10 +40,17 @@ final class AuthenticationFailureHandler extends DefaultAuthenticationFailureHan
 
     public function onAuthenticationFailure(Request $request, AuthenticationException $exception): Response
     {
-        $translationMessage = $this->translator->trans($exception->getMessageKey(), [], 'security', $request->getLocale());
-
         if ($request->isXmlHttpRequest()) {
-            return new JsonResponse(['success' => false, 'message' => $translationMessage], 401);
+            return new JsonResponse([
+                'success' => false,
+                'message' => $this->translator?->trans(
+                    $exception->getMessageKey(),
+                    [],
+                    'security',
+                    $request->getLocale(),
+                ) ?? $exception->getMessageKey(),
+                Response::HTTP_UNAUTHORIZED,
+            ]);
         }
 
         return parent::onAuthenticationFailure($request, $exception);
