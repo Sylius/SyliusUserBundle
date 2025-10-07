@@ -49,8 +49,7 @@ final class AuthenticationFailureHandler extends DefaultAuthenticationFailureHan
                     'security',
                     $request->getLocale(),
                 ) ?? $exception->getMessageKey(),
-                Response::HTTP_UNAUTHORIZED,
-            ]);
+            ], Response::HTTP_UNAUTHORIZED);
         }
 
         return parent::onAuthenticationFailure($request, $exception);
